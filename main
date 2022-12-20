@@ -1,0 +1,40 @@
+#include <iostream>
+using namespace std;
+void orient(int size1);
+void neorient(int size1);
+int orient_2(int size1);
+int neorient_2(int size1);
+int main()
+{
+	setlocale(0, "");
+	int x, size1 = 0;
+	cout << "Курсовую выполнил студент группы 21ВВ3 - Чабуев Ростислав\n";
+	cout << "Тема проекта: Реализация алгоритма нахождения Гамильтоновых циклов\n";
+	cout << "Выберите тип графа:\n1-Ориентированный граф\n2-Неориентированный граф\n";
+	cin >> x;
+
+	switch (x)
+	{
+	case 1:
+		cout << "Выберите откуда взять граф:\n1-Из файла\n2-Создать случайный граф" << endl;
+		cin >> x;
+		if (x == 1)
+			size1 = orient_2(size1);
+		else
+			cout << "Введите размер для графа:";
+			cin >> size1;
+			orient(size1);
+		break;
+	case 2:
+		cout << "Выберите откуда взять граф:\n1-Из файла\n2-Создать случайный граф" << endl;
+		cin >> x;
+		if (x == 1)
+			size1 = neorient_2(size1);
+		else
+			cout << "Введите размер для графа:";
+		cin >> size1;
+		neorient(size1);
+		break;
+	}
+	return 0;
+}
