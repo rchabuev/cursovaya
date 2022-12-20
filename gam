@@ -1,0 +1,324 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
+#include <time.h>
+#include <fstream>
+#include <string>
+using namespace std;
+int* doroga;
+void create(int size, int** mat) {
+	int i, j, x;
+	srand(time(NULL));
+	for (i = 0; i < size; i++) {
+		mat[i] = (int*)malloc(size * sizeof(int));
+		for (j = 0; j < size; j++) {
+			mat[i][j] = rand() % 100;
+		}
+	}
+	for (i = 0; i < size; i++) {
+		for (j = 0; j < size; j++) {
+			if (mat[i][j] < 70) mat[i][j] = 1;
+			else mat[i][j] = 0;
+		}
+	}
+}
+void createneo(int size, int** mat) {
+	int i, j, x = 0, n = 0;
+	srand(time(NULL));
+	for (i = 0; i < size; i++) {
+		mat[i] = (int*)malloc(size * sizeof(int));
+		for (j = 0; j < size; j++) {
+			mat[i][j] = rand() % 100;
+		}
+	}
+	for (i = 0; i < size; i++) {
+		for (j = 0; j < size; j++) {
+			if (mat[i][j] < 70) mat[i][j] = 1;
+			else mat[i][j] = 0;
+		}
+	}
+	for (i = 0; i < size; i++) {
+		for (j = 0; j < size; j++) {
+			mat[i][j] = mat[j][i];
+			if (i == j) mat[j][i] = 0;
+		}
+	}
+}
+void printmatrix(int size, int** mat) {
+	int i, j;
+	for (i = 0; i < size; i++) {
+		for (j = 0; j < size; j++) {
+			cout << mat[i][j] << " ";
+		}
+		cout << endl;
+	}
+}
+void printmass(int size, int* mas) {
+	int i;
+	for (i = 0; i < size; i++)
+		cout << mas[i] + 1 << " ";
+	cout << mas[0] + 1;
+	cout << endl;
+}
+void visitor(int size, int* mas) {
+	int i;
+	for (i = 0; i < size; i++) {
+		mas[i] = -1;
+	}
+}
+int hamilton(int size, int versh, int** mat, int* mas, int count) {
+	int i;
+	int success = 0;
+	for (i = 0; i < size && !success; i++)
+	{
+		if (mat[i][doroga[count - 1]] || mat[doroga[count - 1]][i])//проверка на смежность вершин в графе
+		{
+			if (count == size && i == versh)//если все вершины просмотрены и вершина равна начальной
+			{
+				success = 1;
+				continue;
+			}
+			else if (mas[i] == -1)
+			{
+				mas[i] = count;
+				doroga[count] = i;
+				success = hamilton(size, versh, mat, mas, count + 1);//рекурсия для просмотра других вершин
+				if (!success) mas[i] = -1;
+			}
+			else continue;
+		}
+	}
+	return success;
+}
+int hamilton_2(int size, int versh, int** mat, int* mas, int count) {
+	int i;
+	int success = 0;
+	for (i = 0; i < size && !success; i++)
+	{
+		if (mat[doroga[count - 1]][i])
+		{
+			if (count == size)
+			{
+				success = 1;
+				continue;
+			}
+			else if (mas[i] == -1)
+			{
+				mas[i] = count;
+				doroga[count] = i;
+				success = hamilton_2(size, versh, mat, mas, count + 1);
+				if (!success) mas[i] = -1;
+			}
+			else continue;
+		}
+	}
+	return success;
+}
+void orient(int size) {
+	int versh, count = 1;
+	int* vis;
+	int** graph;
+	graph = (int**)malloc(size * sizeof(int));
+	doroga = (int*)malloc(size * sizeof(int));
+	vis = (int*)malloc(size * sizeof(int));
+	create(size, graph);
+	printmatrix(size, graph);
+	cout << "Гамильтонов цикл для каждой вершины" << endl;
+	for (versh= 0; versh< size; versh++)
+	{
+		visitor(size, vis);
+		doroga[0] = versh;
+		vis[versh] = versh;
+		if (hamilton_2(size, versh, graph, vis, count))
+			printmass(size, doroga);
+		else
+			cout << "Для точки: " << versh+ 1 << " нет цикла" << endl;
+	}
+}
+void neorient(int size) {
+	int versh, count = 1;
+	int* vis;
+	int** graph;
+	graph = (int**)malloc(size * sizeof(int*));
+	doroga = (int*)malloc(size * sizeof(int));
+	vis = (int*)malloc(size * sizeof(int));
+	createneo(size, graph);
+	printmatrix(size, graph);
+	cout << "Гамильтонов цикл для каждой вершины" << endl;
+	for (versh= 0; versh< size; versh++)
+	{
+		visitor(size, vis);
+		doroga[0] = versh;
+		vis[versh] = versh;
+		if (hamilton(size, versh, graph, vis, count))
+			printmass(size, doroga);
+		else
+			cout << "Для точки: " << versh+ 1 << " нет цикла" << endl;
+	}
+}
+void fromfile_1(int size, int** mat)
+{
+	int i, j;
+	ifstream fin;
+	fin.open("ori.txt");
+	if (!fin.is_open())
+	{
+		cout << "Ошибка при открытии файла.\n";
+		system("pause>>void");
+	}
+	else
+	{
+		string str;
+		int iin = 0;
+		for (i = 0; i < size; i++)
+		{
+			mat[i] = (int*)malloc(size * sizeof(int));
+			for (j = 0; j < size; j++)
+			{
+				fin >> str;
+				for (int m = 0; m < str.length(); m++)
+				{
+					if (str.at(m) == '1' || str.at(m) == '0')
+					{
+						iin = stoi(str);
+						mat[i][j] = iin;
+					}
+					else
+					{
+						cout << "В файл введены некорректные данные.\n";
+						system("pause>>void");
+					}
+				}
+			}
+		}
+		fin.close();
+	}
+
+}
+void fromfile_2(int size, int** mat)
+{
+	int i, j;
+	ifstream fin;
+	fin.open("neo.txt");
+	if (!fin.is_open())
+	{
+		cout << "Ошибка при открытии файла.\n";
+		system("pause>>void");
+	}
+	else
+	{
+		string str;
+		int iin = 0;
+		for (i = 0; i < size; i++)
+		{
+			mat[i] = (int*)malloc(size * sizeof(int));
+			for (j = 0; j < size; j++)
+			{
+				fin >> str;
+				for (int m = 0; m < str.length(); m++)
+				{
+					if (str.at(m) == '1' || str.at(m) == '0')
+					{
+						iin = stoi(str);
+						mat[i][j] = iin;
+					}
+					else
+					{
+						cout << "В файл введены некорректные данные.\n";
+						system("pause>>void");
+					}
+				}
+			}
+		}
+		fin.close();
+	}
+}
+int neorient_2(int size) {
+	int i, versh, count = 1;
+	int* vis;
+	int** graph;
+	fstream fs;
+	fstream f2;
+	fs.open("neo.txt");
+	int a;
+	while (!fs.eof()) {
+		fs >> a;
+		size++;
+	}
+	fs.clear();
+	fs.seekg(0);
+	size = sqrt(size);
+	graph = (int**)malloc(size * sizeof(int));
+	doroga = (int*)malloc(size * sizeof(int));
+	vis = (int*)malloc(size * sizeof(int));
+	fromfile_2(size, graph);
+	printmatrix(size, graph);
+	cout << "Гамильтонов цикл для каждой вершины" << endl;
+	f2.open("output.txt");
+	f2.seekg(0);
+	for (versh = 0; versh < size; versh++)
+	{
+		visitor(size, vis);
+		doroga[0] = versh;
+		vis[versh] = versh;
+		if (hamilton_2(size, versh, graph, vis, count))
+		{
+			printmass(size, doroga);
+			for (i = 0; i < size; i++) {
+				f2 << doroga[i] + 1;
+			}
+			f2 << doroga[0] + 1;
+			f2 << endl;
+		}
+		else
+			cout << "Для точки: " << versh + 1 << " нет цикла" << endl;
+	}
+	fs.close();
+	f2.close();
+	return(size);
+}
+int orient_2(int size) {
+	int i, versh, count = 1;
+	int* vis;
+	int** graph;
+	fstream fs;
+	fstream f2;
+	fs.open("ori.txt");
+	int a; 
+	while (!fs.eof()) {
+		fs >> a; 
+		size++;
+		}
+	fs.clear();
+	fs.seekg(0);
+	size = sqrt (size);
+	graph = (int**)malloc(size * sizeof(int));
+	doroga = (int*)malloc(size * sizeof(int));
+	vis = (int*)malloc(size * sizeof(int));
+	fromfile_1(size, graph);
+	printmatrix(size, graph);
+	cout << "Гамильтонов цикл для каждой вершины" << endl;
+	f2.open("output.txt");
+	f2.seekg(0);
+	for (versh = 0; versh < size; versh++)
+	{
+
+		visitor(size, vis);
+		doroga[0] = versh;
+		vis[versh] = versh;
+		if (hamilton_2(size, versh, graph, vis, count))
+		{
+			printmass(size, doroga);
+			for (i = 0; i < size; i++) 
+			{
+				f2 << doroga[i] + 1;
+			}
+			f2 << doroga[0] + 1;
+			f2 << endl;
+		}
+		else
+			cout << "Для точки: " << versh + 1 << " нет цикла" << endl;
+	}
+	fs.close();
+	f2.close();
+	return(size);
+}
